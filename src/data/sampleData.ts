@@ -1,31 +1,31 @@
-import { DutyTask, StaffMember, SchoolMetadata } from '../types';
+import { DutyTask, StaffMember, SchoolMetadata, DutyAllocation } from '../types';
 
 export const DEFAULT_TASKS: DutyTask[] = [
   {
     id: 'task-1',
     title: 'School (Building 1)',
-    location: 'Primary & Middle Wing - Main Block',
+    location: '[CAMPUS WING]',
     description: 'Corridor surveillance, morning assembly discipline, and classroom order.',
     timing: '07:45 AM - 02:30 PM',
-    requiredCount: 4,
+    requiredCount: 5,
     preferredGender: 'any',
     badgeColor: 'blue',
   },
   {
     id: 'task-2',
     title: 'School (Building 2)',
-    location: 'Senior Secondary Wing & Science Labs',
+    location: '[CAMPUS WING]',
     description: 'Lab transition monitoring, recess crowd control, and gate security oversight.',
     timing: '08:00 AM - 03:00 PM',
-    requiredCount: 4,
+    requiredCount: 5,
     preferredGender: 'any',
     badgeColor: 'indigo',
   },
   {
     id: 'task-3',
-    title: 'Garden & Campus Grounds',
-    location: 'Botanical Garden, Sports Pavilion & Playfields',
-    description: 'Outdoor supervision during sports periods, lunch breaks, and dispersal.',
+    title: 'Garden & Cleaning',
+    location: '[CAMPUS WING]',
+    description: 'Outdoor campus cleanliness, playfields, and garden maintenance supervision.',
     timing: '10:30 AM - 03:30 PM',
     requiredCount: 3,
     preferredGender: 'any',
@@ -34,17 +34,17 @@ export const DEFAULT_TASKS: DutyTask[] = [
   {
     id: 'task-4',
     title: 'Hostel (Boys)',
-    location: 'Tagore House - Boys Residential Block',
+    location: '[CAMPUS WING]',
     description: 'Evening study hall monitoring, dining hall discipline, and night roll call.',
     timing: '05:30 PM - 10:00 PM',
     requiredCount: 3,
-    preferredGender: 'male',
+    preferredGender: 'any',
     badgeColor: 'amber',
   },
   {
     id: 'task-5',
     title: 'Hostel (Girls)',
-    location: 'Sarojini House - Girls Residential Block',
+    location: '[CAMPUS WING]',
     description: 'Evening study hall monitoring, dining hall discipline, and night roll call.',
     timing: '05:30 PM - 10:00 PM',
     requiredCount: 3,
@@ -54,33 +54,49 @@ export const DEFAULT_TASKS: DutyTask[] = [
 ];
 
 export const SAMPLE_STAFF: StaffMember[] = [
-  { id: 'st-1', name: 'Dr. Arthur Mitchell', department: 'Science (Physics)', gender: 'male', role: 'Senior PGT', phone: '+1 987-555-0101', isActive: true },
-  { id: 'st-2', name: 'Mrs. Evelyn Davenport', department: 'Mathematics', gender: 'female', role: 'HOD Mathematics', phone: '+1 987-555-0102', isActive: true },
-  { id: 'st-3', name: 'Mr. Rajesh Sharma', department: 'Physical Education', gender: 'male', role: 'Sports Director', phone: '+1 987-555-0103', isActive: true },
-  { id: 'st-4', name: 'Ms. Clara Thornton', department: 'English Literature', gender: 'female', role: 'Senior TGT', phone: '+1 987-555-0104', isActive: true },
-  { id: 'st-5', name: 'Mr. David Montgomery', department: 'Social Sciences', gender: 'male', role: 'Academic Coordinator', phone: '+1 987-555-0105', isActive: true },
-  { id: 'st-6', name: 'Mrs. Priyadarshini Sen', department: 'Chemistry', gender: 'female', role: 'Senior PGT', phone: '+1 987-555-0106', isActive: true },
-  { id: 'st-7', name: 'Mr. Marcus Vance', department: 'Computer Science', gender: 'male', role: 'IT Incharge', phone: '+1 987-555-0107', isActive: true },
-  { id: 'st-8', name: 'Sister Beatrice Lopez', department: 'Value Education', gender: 'female', role: 'House Mistress', phone: '+1 987-555-0108', isActive: true },
-  { id: 'st-9', name: 'Mr. Jonathan Hughes', department: 'Biology', gender: 'male', role: 'Hostel Warden', phone: '+1 987-555-0109', isActive: true },
-  { id: 'st-10', name: 'Ms. Ananya Deshmukh', department: 'Fine Arts', gender: 'female', role: 'Cultural Incharge', phone: '+1 987-555-0110', isActive: true },
-  { id: 'st-11', name: 'Mr. Thomas Sterling', department: 'History & Civics', gender: 'male', role: 'Senior TGT', phone: '+1 987-555-0111', isActive: true },
-  { id: 'st-12', name: 'Mrs. Rebecca Wallace', department: 'Modern Languages', gender: 'female', role: 'Staff Secretary', phone: '+1 987-555-0112', isActive: true },
-  { id: 'st-13', name: 'Mr. Vikram Singhania', department: 'Accountancy', gender: 'male', role: 'Commerce Faculty', phone: '+1 987-555-0113', isActive: true },
-  { id: 'st-14', name: 'Ms. Katherine Kelly', department: 'Geography', gender: 'female', role: 'Eco-Club Lead', phone: '+1 987-555-0114', isActive: true },
-  { id: 'st-15', name: 'Mr. Samuel O\'Connor', department: 'Economics', gender: 'male', role: 'Discipline Head', phone: '+1 987-555-0115', isActive: true },
-  { id: 'st-16', name: 'Mrs. Fatima Al-Mansoor', department: 'Mathematics', gender: 'female', role: 'Senior TGT', phone: '+1 987-555-0116', isActive: true },
-  { id: 'st-17', name: 'Mr. Harrison Blake', department: 'Music & Performing Arts', gender: 'male', role: 'Music Master', phone: '+1 987-555-0117', isActive: true },
-  { id: 'st-18', name: 'Ms. Sunita Rao', department: 'Science (Junior)', gender: 'female', role: 'Primary Incharge', phone: '+1 987-555-0118', isActive: true },
-  { id: 'st-19', name: 'Mr. Lawrence Chen', department: 'Robotics & STEAM', gender: 'male', role: 'Innovation Lab Mentor', phone: '+1 987-555-0119', isActive: true },
-  { id: 'st-20', name: 'Mrs. Diana Prince-Cole', department: 'Psychology & Counselling', gender: 'female', role: 'Student Counsellor', phone: '+1 987-555-0120', isActive: true },
+  // Building 1 Staff
+  { id: 'st-1', name: 'Mrs. Jyoti Pawar', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-2', name: 'Mr. Rohan Chaugule', department: 'Faculty', gender: 'male', role: 'Teacher', isActive: true },
+  { id: 'st-3', name: 'Mrs. Rajashri Kandhare', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-4', name: 'Mrs. Reshma Sawanth', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-5', name: 'Mrs. Manisha Gharge', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+
+  // Building 2 Staff
+  { id: 'st-6', name: 'Mrs. Aruna Shinde', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-7', name: 'Mrs. Vaishali Rajguru', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-8', name: 'Mrs. Vaishali Koli', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-9', name: 'Mrs. Suvarna Jadhav', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+  { id: 'st-10', name: 'Mrs. Kastura Bhosale', department: 'Faculty', gender: 'female', role: 'Teacher', isActive: true },
+
+  // Garden & Cleaning Staff
+  { id: 'st-11', name: 'Mrs. Rekha Bhosale', department: 'Maintenance & Campus', gender: 'female', role: 'Staff', isActive: true },
+  { id: 'st-12', name: 'Mrs. Manisha Sarawade', department: 'Maintenance & Campus', gender: 'female', role: 'Staff', isActive: true },
+  { id: 'st-13', name: 'Mrs. Savita Rokade', department: 'Maintenance & Campus', gender: 'female', role: 'Staff', isActive: true },
+
+  // Hostel (Boys) Staff
+  { id: 'st-14', name: 'Mrs. Varsha Survase', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+  { id: 'st-15', name: 'Mrs. Surekha Hande', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+  { id: 'st-16', name: 'Mrs. Pooja Pawar', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+
+  // Hostel (Girls) Staff
+  { id: 'st-17', name: 'Mrs. Alka Pawar', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+  { id: 'st-18', name: 'Mrs. Laxmi Salinkhe', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+  { id: 'st-19', name: 'Mrs. Sakubai Waghmode', department: 'Residential Warden', gender: 'female', role: 'Warden', isActive: true },
+];
+
+export const DEFAULT_ALLOCATIONS: DutyAllocation[] = [
+  { taskId: 'task-1', groupName: 'Squad 1', staffIds: ['st-1', 'st-2', 'st-3', 'st-4', 'st-5'] },
+  { taskId: 'task-2', groupName: 'Squad 2', staffIds: ['st-6', 'st-7', 'st-8', 'st-9', 'st-10'] },
+  { taskId: 'task-3', groupName: 'Squad 3', staffIds: ['st-11', 'st-12', 'st-13'] },
+  { taskId: 'task-4', groupName: 'Squad 4', staffIds: ['st-14', 'st-15', 'st-16'] },
+  { taskId: 'task-5', groupName: 'Squad 5', staffIds: ['st-17', 'st-18', 'st-19'] },
 ];
 
 export const DEFAULT_SCHOOL_META: SchoolMetadata = {
-  name: 'ST. XAVIER COLLEGIATE ACADEMY',
-  subtitle: 'Board of Discipline & Campus Administration',
-  academicYear: 'Academic Session 2026 – 2027',
-  preparedBy: 'Vice Principal (Administration)',
-  approvedBy: 'Principal & Headmaster',
+  name: 'SINHGAD PUBLIC SCHOOL KEGAON',
+  subtitle: 'Sinhgad Public School, Kegaon',
+  academicYear: 'ACADEMIC SESSION 2026 – 2027',
+  preparedBy: 'VICE PRINCIPAL (ADMINISTRATION)',
+  approvedBy: 'PRINCIPAL',
   noticeText: 'All assigned staff members are requested to report 15 minutes prior to shift commencement. Absence or swap must be sanctioned 24 hours in advance by the Principal Office.',
 };

@@ -4,16 +4,13 @@ import autoTable from 'jspdf-autotable';
 import { toJpeg, toPng } from 'html-to-image';
 import { DutyAllocation, DutyTask, SchoolMetadata, StaffMember } from '../types';
 
-/**
- * Clean sanitization for filenames
- */
 function sanitizeFileName(name: string): string {
   return name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
 }
 
 /**
  * EXCEL EXPORT (.xlsx)
- * Generates an official, streamlined multi-sheet workbook.
+ * Matches the official institutional format.
  */
 export function exportRosterToExcel(
   allocations: DutyAllocation[],
@@ -25,20 +22,19 @@ export function exportRosterToExcel(
   const staffMap = new Map(staffList.map((s) => [s.id, s]));
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
 
+  const issuedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
   // Sheet 1: Official Duty Roster
   const rosterRows: (string | number)[][] = [
     [schoolMeta.name.toUpperCase()],
-    [schoolMeta.subtitle],
-    [`Academic Session: ${schoolMeta.academicYear} | Schedule: ${effectiveDate}`],
-    [`Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`],
-    [], // Blank spacing row
+    [`OFFICIAL DUTY ALLOCATION ROSTER • ${schoolMeta.academicYear.toUpperCase()}`],
+    [`Schedule: ${effectiveDate}`, '', `Issued: ${issuedDate}`],
+    [],
     [
-      'S.No',
-      'Duty Station / Area',
-      'Location Specifics',
-      'Assigned Squad',
-      'Staff Members',
-      'Specific Instructions'
+      'SR. NO.',
+      'DUTY STATION / AREA',
+      'STAFF MEMBER',
+      'SIGNATURE'
     ]
   ];
 
@@ -50,39 +46,45 @@ export function exportRosterToExcel(
       .map((id) => staffMap.get(id))
       .filter((s): s is StaffMember => !!s);
 
-    const staffNames = assignedStaff.map((s) => s.name).join('; ');
-
-    rosterRows.push([
-      index + 1,
-      task.title,
-      task.location,
-      alloc.groupName,
-      staffNames || 'None',
-      task.description
-    ]);
+    if (assignedStaff.length === 0) {
+      rosterRows.push([
+        index + 1,
+        `${task.title}\n${task.location}`,
+        'No staff assigned',
+        '____________________'
+      ]);
+    } else {
+      assignedStaff.forEach((staff, sIdx) => {
+        rosterRows.push([
+          sIdx === 0 ? index + 1 : '',
+          sIdx === 0 ? `${task.title} ${task.location}` : '',
+          `${sIdx + 1}. ${staff.name}`,
+          '........................................'
+        ]);
+      });
+    }
   });
 
   rosterRows.push([]);
-  rosterRows.push([`Standing Orders: ${schoolMeta.noticeText}`]);
-  rosterRows.push([`Prepared by: ${schoolMeta.preparedBy}`, '', '', `Approved by: ${schoolMeta.approvedBy}`]);
+  rosterRows.push([`STANDING ORDERS: ${schoolMeta.noticeText}`]);
+  rosterRows.push([]);
+  rosterRows.push([schoolMeta.preparedBy, '', '', schoolMeta.approvedBy]);
+  rosterRows.push([schoolMeta.subtitle, '', '', schoolMeta.subtitle]);
 
   const wsRoster = XLSX.utils.aoa_to_sheet(rosterRows);
 
-  // Set column widths
   wsRoster['!cols'] = [
-    { wch: 8 },  // S.No
-    { wch: 28 }, // Duty Location
-    { wch: 32 }, // Location specifics
-    { wch: 20 }, // Assigned Squad
-    { wch: 50 }, // Staff Members
-    { wch: 45 }, // Instructions
+    { wch: 10 }, // SR. NO.
+    { wch: 32 }, // DUTY STATION
+    { wch: 40 }, // STAFF MEMBER
+    { wch: 28 }, // SIGNATURE
   ];
 
-  // Sheet 2: School Staff Directory
+  // Sheet 2: Staff Directory
   const staffRows: (string | number)[][] = [
     ['STAFF MASTER DIRECTORY', schoolMeta.name],
     [],
-    ['ID', 'Staff Name', 'Department / Subject', 'Designation / Role', 'Gender', 'Phone / Extension', 'Status']
+    ['ID', 'Staff Name', 'Department / Subject', 'Designation / Role', 'Status']
   ];
 
   staffList.forEach((s) => {
@@ -91,21 +93,17 @@ export function exportRosterToExcel(
       s.name,
       s.department,
       s.role,
-      s.gender.charAt(0).toUpperCase() + s.gender.slice(1),
-      s.phone || 'N/A',
       s.isActive ? 'Active on Duty' : 'On Leave'
     ]);
   });
 
   const wsStaff = XLSX.utils.aoa_to_sheet(staffRows);
   wsStaff['!cols'] = [
-    { wch: 10 },
-    { wch: 28 },
+    { wch: 12 },
+    { wch: 30 },
     { wch: 26 },
     { wch: 24 },
-    { wch: 12 },
-    { wch: 20 },
-    { wch: 16 },
+    { wch: 18 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -119,7 +117,7 @@ export function exportRosterToExcel(
 
 /**
  * PDF EXPORT (.pdf)
- * Generates an executive institutional letterhead document with signatures.
+ * Exactly reproduces the official portrait document design with signature lines.
  */
 export function exportRosterToPdf(
   allocations: DutyAllocation[],
@@ -131,141 +129,175 @@ export function exportRosterToPdf(
   const staffMap = new Map(staffList.map((s) => [s.id, s]));
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
 
-  // Landscape A4 for rich tabular display
+  // Standard Portrait A4 (210mm x 297mm)
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();
+  const issuedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // Institution Top Header Styling
-  doc.setFillColor(15, 43, 72); // Academic Navy #0f2b48
-  doc.rect(0, 0, pageWidth, 5, 'F');
+  // 1. School Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(19);
+  doc.setTextColor(21, 46, 89); // Deep Institutional Navy #152e59
+  doc.text(schoolMeta.name.toUpperCase(), pageWidth / 2, 18, { align: 'center' });
 
-  // School Crest Accent Line
-  doc.setFillColor(217, 119, 6); // Amber Gold #d97706
-  doc.rect(0, 5, pageWidth, 1.5, 'F');
-
-  // School Name Header
-  doc.setFont('times', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(15, 43, 72);
-  doc.text(schoolMeta.name.toUpperCase(), pageWidth / 2, 16, { align: 'center' });
-
-  // Subtitle
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10.5);
-  doc.setTextColor(71, 85, 105);
-  doc.text(schoolMeta.subtitle, pageWidth / 2, 22, { align: 'center' });
-
-  // Academic Session & Date Box (Without Ref)
+  // 2. Subtitle: OFFICIAL DUTY ALLOCATION ROSTER • ACADEMIC SESSION
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
-  doc.setTextColor(30, 41, 59);
+  doc.setTextColor(29, 78, 216); // Royal Blue #1d4ed8
   doc.text(
-    `OFFICIAL DUTY ALLOCATION ROSTER | ${schoolMeta.academicYear.toUpperCase()}`,
+    `OFFICIAL DUTY ALLOCATION ROSTER • ${schoolMeta.academicYear.toUpperCase()}`,
     pageWidth / 2,
-    28,
+    24,
     { align: 'center' }
   );
 
+  // 3. Schedule & Issued Date Bar
+  doc.setDrawColor(203, 213, 225); // Slate 300
+  doc.setLineWidth(0.3);
+  doc.line(14, 28, pageWidth - 14, 28);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(15, 23, 42); // Slate 900
+  doc.text('Schedule: ', 14, 33);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text(
-    `Schedule: ${effectiveDate}   •   Issued: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-    pageWidth / 2,
-    33,
-    { align: 'center' }
-  );
+  doc.text(effectiveDate, 31, 33);
 
-  // Build Table Data (Streamlined: No shift timing, no incharge, clean staff names)
-  const tableData = allocations.map((alloc, idx) => {
+  doc.setFont('helvetica', 'bold');
+  const issuedText = `Issued: ${issuedDate}`;
+  doc.text(issuedText, pageWidth - 14, 33, { align: 'right' });
+
+  doc.line(14, 35.5, pageWidth - 14, 35.5);
+
+  // 4. Build Table Rows
+  const tableData: (string | number)[][] = [];
+
+  allocations.forEach((alloc, idx) => {
     const task = taskMap.get(alloc.taskId);
     const assignedStaff = alloc.staffIds
       .map((id) => staffMap.get(id))
       .filter((s): s is StaffMember => !!s);
 
-    const staffListFormatted = assignedStaff
-      .map((s, i) => `${i + 1}. ${s.name}`)
-      .join('\n');
+    const staffLines = assignedStaff.length > 0
+      ? assignedStaff.map((s, i) => `${i + 1}. ${s.name}`).join('\n\n')
+      : 'No staff assigned';
 
-    return [
+    const signatureLines = assignedStaff.length > 0
+      ? assignedStaff.map(() => '-----------------------------------------').join('\n\n')
+      : '-----------------------------------------';
+
+    tableData.push([
       `${idx + 1}`,
-      `${task?.title || 'Duty Area'}\n[${task?.location || ''}]`,
-      alloc.groupName,
-      staffListFormatted || 'No staff assigned',
-      task?.description || '-'
-    ];
+      `${task?.title || 'Duty Station'}\n${task?.location || '[CAMPUS WING]'}`,
+      staffLines,
+      signatureLines
+    ]);
   });
 
-  // Render Table using AutoTable
+  // Render Table
   autoTable(doc, {
-    startY: 37,
+    startY: 38,
     head: [[
-      '#',
-      'Duty Station / Area',
-      'Assigned Squad',
-      'Staff Members',
-      'Specific Instructions'
+      'SR.\nNO.',
+      'DUTY STATION / AREA',
+      'STAFF MEMBER',
+      'SIGNATURE'
     ]],
     body: tableData,
     theme: 'grid',
     styles: {
       font: 'helvetica',
-      fontSize: 9,
+      fontSize: 8.5,
       cellPadding: 3.5,
-      textColor: [30, 41, 59],
+      textColor: [15, 23, 42],
       lineColor: [203, 213, 225],
-      lineWidth: 0.2,
-      valign: 'top',
+      lineWidth: 0.25,
+      valign: 'middle',
     },
     headStyles: {
-      fillColor: [15, 43, 72],
+      fillColor: [22, 45, 89], // #162d59
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 9,
+      fontSize: 8.5,
       halign: 'center',
+      valign: 'middle',
     },
     columnStyles: {
-      0: { cellWidth: 12, halign: 'center' },
-      1: { cellWidth: 62, fontStyle: 'bold' },
-      2: { cellWidth: 38, halign: 'center' },
-      3: { cellWidth: 95 },
-      4: { cellWidth: 70 },
+      0: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 50, halign: 'center', fontStyle: 'bold' },
+      2: { cellWidth: 70, halign: 'left' },
+      3: { cellWidth: 48, halign: 'center', textColor: [148, 163, 184] },
     },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252],
-    },
-    margin: { left: 10, right: 10, bottom: 28 },
+    margin: { left: 14, right: 14, bottom: 25 },
   });
 
+  // 5. Standing Orders Box
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lastY = (doc as any).lastAutoTable?.finalY || 160;
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const footerY = Math.min(Math.max(lastY + 12, pageHeight - 24), pageHeight - 16);
+  const lastY = (doc as any).lastAutoTable?.finalY || 210;
+  const ordersBoxY = lastY + 5;
 
-  // Administrative Notice
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Standing Orders: ${schoolMeta.noticeText}`, 10, footerY - 4, { maxWidth: pageWidth - 20 });
+  doc.setFillColor(248, 250, 252); // Slate 50
+  doc.rect(14, ordersBoxY, pageWidth - 28, 16, 'F');
 
-  // Dual Signature Lines
+  // Blue left accent line
+  doc.setFillColor(29, 78, 216); // Royal blue #1d4ed8
+  doc.rect(14, ordersBoxY, 1.5, 16, 'F');
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
-  doc.setTextColor(15, 43, 72);
+  doc.setTextColor(29, 78, 216);
+  doc.text('STANDING ORDERS', 18, ordersBoxY + 5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(
+    schoolMeta.noticeText,
+    18,
+    ordersBoxY + 9.5,
+    { maxWidth: pageWidth - 36 }
+  );
+
+  // 6. Dual Signature Lines
+  const sigY = ordersBoxY + 25;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42); // Dark slate
 
   // Left Signature
-  doc.setDrawColor(148, 163, 184);
-  doc.line(20, footerY + 10, 80, footerY + 10);
-  doc.text(schoolMeta.preparedBy, 50, footerY + 14, { align: 'center' });
+  doc.text(schoolMeta.preparedBy, 14, sigY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(schoolMeta.subtitle, 14, sigY + 4);
 
   // Right Signature
-  doc.line(pageWidth - 80, footerY + 10, pageWidth - 20, footerY + 10);
-  doc.text(schoolMeta.approvedBy, pageWidth - 50, footerY + 14, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(schoolMeta.approvedBy, pageWidth - 14, sigY, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(schoolMeta.subtitle, pageWidth - 14, sigY + 4, { align: 'right' });
+
+  // 7. Footer Note
+  const pageHeight = doc.internal.pageSize.getHeight();
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    `${schoolMeta.subtitle} — Duty Roster (${effectiveDate})`,
+    pageWidth / 2,
+    pageHeight - 8,
+    { align: 'center' }
+  );
 
   const cleanSchool = sanitizeFileName(schoolMeta.name || 'school');
   const dateTag = new Date().toISOString().slice(0, 10);
@@ -290,7 +322,7 @@ export async function exportRosterToImage(
 
   const exportOptions = {
     pixelRatio: 2.5,
-    quality: 0.95,
+    quality: 0.98,
     backgroundColor: '#ffffff',
     cacheBust: true,
   };

@@ -5,9 +5,9 @@ import { StaffManager } from './components/StaffManager';
 import { TaskManager } from './components/TaskManager';
 import { SettingsView } from './components/SettingsView';
 import { DutyAllocation, DutyTask, SchoolMetadata, ShuffleOptions, StaffMember } from './types';
-import { DEFAULT_SCHOOL_META, DEFAULT_TASKS, SAMPLE_STAFF } from './data/sampleData';
+import { DEFAULT_ALLOCATIONS, DEFAULT_SCHOOL_META, DEFAULT_TASKS, SAMPLE_STAFF } from './data/sampleData';
 import { generateDutyAllocations } from './utils/allocationEngine';
-import { Shield, Sparkles } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Navigation State
@@ -15,7 +15,7 @@ export const App: React.FC = () => {
 
   // Staff State with LocalStorage
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
-    const saved = localStorage.getItem('eduroster_staff_list');
+    const saved = localStorage.getItem('eduroster_staff_list_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -28,7 +28,7 @@ export const App: React.FC = () => {
 
   // Tasks / Duty Stations State with LocalStorage
   const [tasks, setTasks] = useState<DutyTask[]>(() => {
-    const saved = localStorage.getItem('eduroster_duty_tasks');
+    const saved = localStorage.getItem('eduroster_duty_tasks_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -41,7 +41,7 @@ export const App: React.FC = () => {
 
   // School Metadata with LocalStorage
   const [schoolMeta, setSchoolMeta] = useState<SchoolMetadata>(() => {
-    const saved = localStorage.getItem('eduroster_school_meta');
+    const saved = localStorage.getItem('eduroster_school_meta_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -54,59 +54,59 @@ export const App: React.FC = () => {
 
   // Shuffle Options with LocalStorage
   const [shuffleOptions, setShuffleOptions] = useState<ShuffleOptions>(() => {
-    const saved = localStorage.getItem('eduroster_shuffle_options');
+    const saved = localStorage.getItem('eduroster_shuffle_options_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
         return {
-          balanceDepartments: true,
+          balanceDepartments: false,
           respectGenderForHostels: true,
-          autoAssignGroupLeads: true,
+          autoAssignGroupLeads: false,
         };
       }
     }
     return {
-      balanceDepartments: true,
+      balanceDepartments: false,
       respectGenderForHostels: true,
-      autoAssignGroupLeads: true,
+      autoAssignGroupLeads: false,
     };
   });
 
   // Allocations State with LocalStorage
   const [allocations, setAllocations] = useState<DutyAllocation[]>(() => {
-    const saved = localStorage.getItem('eduroster_allocations');
+    const saved = localStorage.getItem('eduroster_allocations_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        return generateDutyAllocations(SAMPLE_STAFF, DEFAULT_TASKS);
+        return DEFAULT_ALLOCATIONS;
       }
     }
-    return generateDutyAllocations(SAMPLE_STAFF, DEFAULT_TASKS);
+    return DEFAULT_ALLOCATIONS;
   });
 
   const [isShuffling, setIsShuffling] = useState(false);
 
   // Sync to LocalStorage
   useEffect(() => {
-    localStorage.setItem('eduroster_staff_list', JSON.stringify(staffList));
+    localStorage.setItem('eduroster_staff_list_v2', JSON.stringify(staffList));
   }, [staffList]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_duty_tasks', JSON.stringify(tasks));
+    localStorage.setItem('eduroster_duty_tasks_v2', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_school_meta', JSON.stringify(schoolMeta));
+    localStorage.setItem('eduroster_school_meta_v2', JSON.stringify(schoolMeta));
   }, [schoolMeta]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_shuffle_options', JSON.stringify(shuffleOptions));
+    localStorage.setItem('eduroster_shuffle_options_v2', JSON.stringify(shuffleOptions));
   }, [shuffleOptions]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_allocations', JSON.stringify(allocations));
+    localStorage.setItem('eduroster_allocations_v2', JSON.stringify(allocations));
   }, [allocations]);
 
   // Shuffling & Reallocation Execution
@@ -139,7 +139,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {activeTab === 'roster' && (
           <RosterTable
             allocations={allocations}
@@ -182,14 +182,14 @@ export const App: React.FC = () => {
       <footer className="no-print bg-white border-t border-slate-200 py-6 mt-12 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#0f2b48]" />
-            <span className="font-semibold text-slate-700">EduRoster Pro</span>
-            <span>• Executive School Duty & Task Allocation System</span>
+            <Shield className="w-4 h-4 text-[#162d59]" />
+            <span className="font-semibold text-slate-700">{schoolMeta.name}</span>
+            <span>• Duty Allocation System</span>
           </div>
           <div className="flex items-center gap-4 text-[11px] text-slate-400">
-            <span>🔒 In-Browser Secure Storage (100% Private Client Data)</span>
+            <span>Official Portrait & PDF Layout</span>
             <span>•</span>
-            <span>Compliant with Institutional Export Formats (.xlsx, .pdf, .jpg)</span>
+            <span>Client Side Local Data</span>
           </div>
         </div>
       </footer>
