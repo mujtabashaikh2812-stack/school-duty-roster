@@ -11,9 +11,9 @@ import {
   Users,
   Edit2,
   Download,
-  AlertCircle,
-  FileText,
-  RotateCcw
+  RotateCcw,
+  Phone,
+  Tag
 } from 'lucide-react';
 import { StaffMember } from '../types';
 import { SAMPLE_STAFF } from '../data/sampleData';
@@ -161,7 +161,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
           return;
         }
 
-        // Identify headers if present
         let startIndex = 0;
         let nameCol = 0;
         let deptCol = 1;
@@ -198,7 +197,14 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
           const rawPhone = row[phoneCol] ? String(row[phoneCol]).trim() : '';
 
           let gender: 'male' | 'female' | 'other' = 'male';
-          if (rawGender.includes('f') || rawGender.includes('female') || rawGender.includes('woman') || rawName.includes('Mrs.') || rawName.includes('Ms.') || rawName.includes('Sister')) {
+          if (
+            rawGender.includes('f') ||
+            rawGender.includes('female') ||
+            rawGender.includes('woman') ||
+            rawName.includes('Mrs.') ||
+            rawName.includes('Ms.') ||
+            rawName.includes('Sister')
+          ) {
             gender = 'female';
           }
 
@@ -238,7 +244,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
     const newStaffList: StaffMember[] = [];
 
     lines.forEach((line, idx) => {
-      // Check if line is CSV format: Name, Department, Role
       const parts = line.split(',').map((p) => p.trim());
       const name = parts[0];
       const dept = parts[1] || 'General';
@@ -279,7 +284,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
     }
   };
 
-  // Load Preset Sample Data
   const handleLoadSampleData = () => {
     if (
       staffList.length === 0 ||
@@ -290,7 +294,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
     }
   };
 
-  // Download Sample Template for user reference
   const downloadSampleTemplate = () => {
     const templateData = [
       ['Staff Full Name', 'Department / Subject', 'Role / Designation', 'Gender (Male/Female)', 'Contact Phone'],
@@ -311,23 +314,24 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
   const femaleCount = staffList.filter((s) => s.gender === 'female').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header & Metric Banner */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sm:p-6">
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-4 sm:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-slate-800">
-              <Users className="w-6 h-6 text-amber-700" />
-              <h2 className="text-xl font-bold font-institutional tracking-wide">
-                School Faculty & Staff Directory
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-amber-700 shrink-0" />
+              <h2 className="text-lg sm:text-xl font-bold font-institutional tracking-wide">
+                Faculty & Staff Directory
               </h2>
             </div>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Maintain school teaching faculty, wardens, administrative personnel, and duty statuses.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* Action buttons (Mobile Full-width Stack) */}
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2">
             <button
               onClick={() => {
                 setEditingStaff(null);
@@ -340,7 +344,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                 });
                 setIsAddModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#0f2b48] hover:bg-[#163b63] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-[#0f2b48] hover:bg-[#163b63] text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer min-h-[42px]"
             >
               <UserPlus className="w-4 h-4" />
               <span>Add Staff</span>
@@ -348,63 +352,63 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
 
             <button
               onClick={() => setIsBulkModalOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-lg border border-slate-300 transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-semibold rounded-lg border border-slate-300 transition-colors cursor-pointer min-h-[42px]"
             >
               <Upload className="w-4 h-4 text-slate-600" />
-              <span>Upload Staff File / Paste</span>
+              <span>Upload Excel / Paste</span>
             </button>
 
             <button
               onClick={handleLoadSampleData}
               title="Reset to 20 realistic sample school teachers"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-slate-600 hover:text-slate-900 text-xs font-medium rounded-lg hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-slate-600 hover:text-slate-900 text-xs font-medium rounded-lg hover:bg-slate-100 transition-colors cursor-pointer border border-slate-200 min-h-[38px]"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Load Sample Staff</span>
+              <span>Load 20 Sample Staff</span>
             </button>
           </div>
         </div>
 
         {/* Directory Metrics Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-100">
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Enrolled</span>
-            <div className="text-xl font-bold text-slate-800 mt-0.5">{staffList.length}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-4 pt-3.5 border-t border-slate-100">
+          <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg border border-slate-200/80">
+            <span className="text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider">Enrolled</span>
+            <div className="text-lg sm:text-xl font-bold text-slate-800 mt-0.5">{staffList.length}</div>
           </div>
-          <div className="bg-emerald-50/60 p-3 rounded-lg border border-emerald-200/60">
-            <span className="text-xs font-medium text-emerald-700 uppercase tracking-wider">Active on Duty</span>
-            <div className="text-xl font-bold text-emerald-800 mt-0.5">{activeCount}</div>
+          <div className="bg-emerald-50/60 p-2.5 sm:p-3 rounded-lg border border-emerald-200/60">
+            <span className="text-[10px] sm:text-xs font-medium text-emerald-700 uppercase tracking-wider">Active</span>
+            <div className="text-lg sm:text-xl font-bold text-emerald-800 mt-0.5">{activeCount}</div>
           </div>
-          <div className="bg-blue-50/60 p-3 rounded-lg border border-blue-200/60">
-            <span className="text-xs font-medium text-blue-700 uppercase tracking-wider">Male Staff</span>
-            <div className="text-xl font-bold text-blue-800 mt-0.5">{maleCount}</div>
+          <div className="bg-blue-50/60 p-2.5 sm:p-3 rounded-lg border border-blue-200/60">
+            <span className="text-[10px] sm:text-xs font-medium text-blue-700 uppercase tracking-wider">Male</span>
+            <div className="text-lg sm:text-xl font-bold text-blue-800 mt-0.5">{maleCount}</div>
           </div>
-          <div className="bg-rose-50/60 p-3 rounded-lg border border-rose-200/60">
-            <span className="text-xs font-medium text-rose-700 uppercase tracking-wider">Female Staff</span>
-            <div className="text-xl font-bold text-rose-800 mt-0.5">{femaleCount}</div>
+          <div className="bg-rose-50/60 p-2.5 sm:p-3 rounded-lg border border-rose-200/60">
+            <span className="text-[10px] sm:text-xs font-medium text-rose-700 uppercase tracking-wider">Female</span>
+            <div className="text-lg sm:text-xl font-bold text-rose-800 mt-0.5">{femaleCount}</div>
           </div>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Search & Filter Bar */}
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, department, or role..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-slate-50/50"
+              placeholder="Search faculty name, subject, role..."
+              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 bg-slate-50/50 min-h-[40px]"
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               value={filterDepartment}
               onChange={(e) => setFilterDepartment(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 min-h-[40px]"
             >
               <option value="all">All Departments ({departments.length})</option>
               {departments.map((dept) => (
@@ -422,7 +426,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     onStaffUpdated();
                   }
                 }}
-                className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors whitespace-nowrap cursor-pointer"
+                className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-2 rounded hover:bg-rose-50 transition-colors whitespace-nowrap cursor-pointer min-h-[40px]"
               >
                 Clear All
               </button>
@@ -431,8 +435,102 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
         </div>
       </div>
 
-      {/* Staff Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* MOBILE STAFF CARDS VIEW (Under 768px screens) */}
+      <div className="block md:hidden space-y-2.5">
+        {filteredStaff.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+            <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+            <p className="font-medium text-sm text-slate-700">No staff members found.</p>
+          </div>
+        ) : (
+          filteredStaff.map((staff, idx) => (
+            <div
+              key={staff.id}
+              className={`bg-white rounded-xl shadow-2xs border border-slate-200 p-3.5 transition-all ${
+                !staff.isActive ? 'opacity-65 bg-slate-50' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400">#{idx + 1}</span>
+                    <h3 className="font-bold text-sm text-slate-900 truncate">{staff.name}</h3>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">{staff.role}</div>
+                </div>
+
+                {/* Status Toggle Badge */}
+                <button
+                  onClick={() => toggleStaffStatus(staff.id)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors shrink-0 ${
+                    staff.isActive
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-200 text-slate-600'
+                  }`}
+                >
+                  {staff.isActive ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-3.5 h-3.5 text-slate-500" />
+                      <span>On Leave</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 mb-3 text-xs">
+                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-800 border border-slate-200">
+                  {staff.department}
+                </span>
+
+                <span
+                  className={`inline-block px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                    staff.gender === 'female'
+                      ? 'bg-rose-100 text-rose-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}
+                >
+                  {staff.gender.toUpperCase()}
+                </span>
+
+                {staff.phone && (
+                  <a
+                    href={`tel:${staff.phone}`}
+                    className="inline-flex items-center gap-1 text-[11px] text-slate-600 hover:text-amber-700 ml-auto"
+                  >
+                    <Phone className="w-3 h-3 text-slate-400" />
+                    <span>{staff.phone}</span>
+                  </a>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => handleEditClick(staff)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-slate-600 hover:text-amber-700 bg-slate-50 hover:bg-amber-50 rounded-lg border border-slate-200 transition-colors cursor-pointer"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteStaff(staff.id, staff.name)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* DESKTOP / TABLET STAFF TABLE (Screens >= 768px) */}
+      <div className="hidden md:block bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#0f2b48] text-white text-xs uppercase tracking-wider font-semibold">
@@ -453,9 +551,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                   <td colSpan={8} className="py-12 text-center text-slate-500">
                     <Users className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                     <p className="font-medium text-slate-600">No staff members found.</p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Upload an Excel list, paste names, or click "Add Staff" above.
-                    </p>
                   </td>
                 </tr>
               ) : (
@@ -484,9 +579,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                         className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${
                           staff.gender === 'female'
                             ? 'bg-rose-100 text-rose-800'
-                            : staff.gender === 'male'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-slate-100 text-slate-700'
+                            : 'bg-blue-100 text-blue-800'
                         }`}
                       >
                         {staff.gender.toUpperCase()}
@@ -501,7 +594,6 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                             ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                             : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                         }`}
-                        title="Click to toggle Available vs On-Leave"
                       >
                         {staff.isActive ? (
                           <>
@@ -540,23 +632,23 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
         </div>
       </div>
 
-      {/* MODAL: ADD / EDIT STAFF */}
+      {/* MODAL: ADD / EDIT STAFF (MOBILE OPTIMIZED SCROLLABLE) */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-150">
-            <div className="bg-[#0f2b48] px-5 py-4 text-white flex items-center justify-between">
-              <h3 className="font-bold text-base font-institutional">
-                {editingStaff ? 'Edit Staff Member' : 'Register New Faculty / Staff'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="bg-[#0f2b48] px-4 sm:px-5 py-3.5 text-white flex items-center justify-between shrink-0">
+              <h3 className="font-bold text-sm sm:text-base font-institutional">
+                {editingStaff ? 'Edit Staff Member' : 'Register New Faculty'}
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-white cursor-pointer text-lg"
+                className="text-slate-400 hover:text-white cursor-pointer text-lg p-1"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveStaff} className="p-5 space-y-4">
+            <form onSubmit={handleSaveStaff} className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                   Full Name *
@@ -567,11 +659,11 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Dr. Arthur Mitchell"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 min-h-[44px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                     Department / Subject
@@ -581,7 +673,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     placeholder="e.g. Mathematics"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 min-h-[44px]"
                   />
                 </div>
 
@@ -594,12 +686,12 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     placeholder="e.g. Senior Teacher / HOD"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 min-h-[44px]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                     Gender
@@ -609,7 +701,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, gender: e.target.value as 'male' | 'female' | 'other' })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 bg-white"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 bg-white min-h-[44px]"
                   >
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -626,7 +718,7 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="e.g. +1 555-0192"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 min-h-[44px]"
                   />
                 </div>
               </div>
@@ -635,13 +727,13 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-lg shadow-sm cursor-pointer"
+                  className="px-4 py-2.5 text-sm font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-lg shadow-sm cursor-pointer min-h-[44px]"
                 >
                   {editingStaff ? 'Save Changes' : 'Add Staff Member'}
                 </button>
@@ -651,37 +743,37 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
         </div>
       )}
 
-      {/* MODAL: BULK FILE UPLOAD & PASTE INGESTION */}
+      {/* MODAL: BULK FILE UPLOAD & PASTE INGESTION (MOBILE OPTIMIZED) */}
       {isBulkModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden">
-            <div className="bg-[#0f2b48] px-5 py-4 text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="bg-[#0f2b48] px-4 sm:px-5 py-3.5 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-base font-institutional">Import Staff Directory</h3>
+                <h3 className="font-bold text-sm sm:text-base font-institutional">Import Staff Directory</h3>
               </div>
               <button
                 onClick={() => setIsBulkModalOpen(false)}
-                className="text-slate-400 hover:text-white cursor-pointer text-lg"
+                className="text-slate-400 hover:text-white cursor-pointer text-lg p-1"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
-              {/* Option A: File Upload */}
+            <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+              {/* Option 1: File Upload */}
               <div>
-                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2 mb-1.5">
                   <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs flex items-center justify-center font-bold">
                     1
                   </span>
                   Upload Excel (.xlsx, .xls) or CSV
                 </h4>
-                <p className="text-xs text-slate-500 mb-3">
+                <p className="text-xs text-slate-500 mb-2.5">
                   Upload an existing spreadsheet containing staff names, departments, and roles.
                 </p>
 
-                <div className="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-5 text-center bg-slate-50 hover:bg-amber-50/20 transition-colors">
+                <div className="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-4 sm:p-5 text-center bg-slate-50 hover:bg-amber-50/20 transition-colors">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -691,24 +783,24 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                     id="staff-file-input"
                   />
                   <label htmlFor="staff-file-input" className="cursor-pointer block">
-                    <Upload className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                    <span className="text-sm font-semibold text-slate-700 block">
-                      Click to choose or drag & drop spreadsheet
+                    <Upload className="w-7 h-7 text-amber-600 mx-auto mb-1.5" />
+                    <span className="text-xs sm:text-sm font-semibold text-slate-700 block">
+                      Choose Excel (.xlsx) or CSV file
                     </span>
-                    <span className="text-xs text-slate-400 block mt-1">
-                      Supports Microsoft Excel (.xlsx), CSV (.csv)
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                      Tap here to browse files on your device
                     </span>
                   </label>
                 </div>
 
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Need a sample format?</span>
+                  <span className="text-slate-400">Sample reference:</span>
                   <button
                     onClick={downloadSampleTemplate}
                     className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-800 font-semibold cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    Download Excel Template
+                    Download Sample Excel
                   </button>
                 </div>
               </div>
@@ -723,23 +815,23 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                 </div>
               </div>
 
-              {/* Option B: Copy Paste */}
+              {/* Option 2: Copy Paste */}
               <div>
-                <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2 mb-1.5">
                   <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs flex items-center justify-center font-bold">
                     2
                   </span>
                   Paste Staff Names List
                 </h4>
                 <p className="text-xs text-slate-500 mb-2">
-                  Paste staff names (one per line, or formatted as <code>Name, Department, Role</code>):
+                  Paste staff names (one per line, e.g. <code>Name, Department, Role</code>):
                 </p>
 
                 <textarea
-                  rows={5}
+                  rows={4}
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder={`Dr. Arthur Mitchell, Physics, Senior PGT\nMrs. Evelyn Davenport, Mathematics, HOD\nMr. Rajesh Sharma, Sports, Director\nSister Beatrice Lopez, Ethics, Warden`}
+                  placeholder={`Dr. Arthur Mitchell, Physics, Senior PGT\nMrs. Evelyn Davenport, Mathematics, HOD\nMr. Rajesh Sharma, Sports, Director`}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
 
@@ -750,11 +842,11 @@ export const StaffManager: React.FC<StaffManagerProps> = ({
                   </div>
                 )}
 
-                <div className="mt-3 flex justify-end">
+                <div className="mt-2.5 flex justify-end">
                   <button
                     onClick={handlePasteImport}
                     disabled={!pasteText.trim()}
-                    className="px-4 py-2 text-xs font-semibold bg-[#0f2b48] hover:bg-[#163b63] disabled:opacity-50 text-white rounded-lg shadow-sm cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold bg-[#0f2b48] hover:bg-[#163b63] disabled:opacity-50 text-white rounded-lg shadow-sm cursor-pointer min-h-[42px]"
                   >
                     Add Pasted Staff
                   </button>
