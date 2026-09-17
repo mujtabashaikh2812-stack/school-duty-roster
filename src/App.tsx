@@ -15,7 +15,7 @@ export const App: React.FC = () => {
 
   // Staff State with LocalStorage
   const [staffList, setStaffList] = useState<StaffMember[]>(() => {
-    const saved = localStorage.getItem('eduroster_staff_list_v2');
+    const saved = localStorage.getItem('eduroster_staff_list_v3');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -28,7 +28,7 @@ export const App: React.FC = () => {
 
   // Tasks / Duty Stations State with LocalStorage
   const [tasks, setTasks] = useState<DutyTask[]>(() => {
-    const saved = localStorage.getItem('eduroster_duty_tasks_v2');
+    const saved = localStorage.getItem('eduroster_duty_tasks_v3');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -41,7 +41,7 @@ export const App: React.FC = () => {
 
   // School Metadata with LocalStorage
   const [schoolMeta, setSchoolMeta] = useState<SchoolMetadata>(() => {
-    const saved = localStorage.getItem('eduroster_school_meta_v2');
+    const saved = localStorage.getItem('eduroster_school_meta_v3');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -54,7 +54,7 @@ export const App: React.FC = () => {
 
   // Shuffle Options with LocalStorage
   const [shuffleOptions, setShuffleOptions] = useState<ShuffleOptions>(() => {
-    const saved = localStorage.getItem('eduroster_shuffle_options_v2');
+    const saved = localStorage.getItem('eduroster_shuffle_options_v3');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -75,7 +75,7 @@ export const App: React.FC = () => {
 
   // Allocations State with LocalStorage
   const [allocations, setAllocations] = useState<DutyAllocation[]>(() => {
-    const saved = localStorage.getItem('eduroster_allocations_v2');
+    const saved = localStorage.getItem('eduroster_allocations_v3');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -88,28 +88,57 @@ export const App: React.FC = () => {
 
   const [isShuffling, setIsShuffling] = useState(false);
 
-  // Sync to LocalStorage
+  // Sync state to LocalStorage
   useEffect(() => {
-    localStorage.setItem('eduroster_staff_list_v2', JSON.stringify(staffList));
+    localStorage.setItem('eduroster_staff_list_v3', JSON.stringify(staffList));
   }, [staffList]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_duty_tasks_v2', JSON.stringify(tasks));
+    localStorage.setItem('eduroster_duty_tasks_v3', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_school_meta_v2', JSON.stringify(schoolMeta));
+    localStorage.setItem('eduroster_school_meta_v3', JSON.stringify(schoolMeta));
   }, [schoolMeta]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_shuffle_options_v2', JSON.stringify(shuffleOptions));
+    localStorage.setItem('eduroster_shuffle_options_v3', JSON.stringify(shuffleOptions));
   }, [shuffleOptions]);
 
   useEffect(() => {
-    localStorage.setItem('eduroster_allocations_v2', JSON.stringify(allocations));
+    localStorage.setItem('eduroster_allocations_v3', JSON.stringify(allocations));
   }, [allocations]);
 
-  // Shuffling & Reallocation Execution
+  // CRITICAL FIX: Only prune deleted staff IDs from allocations.
+  // NEVER randomly reshuffle or automatically change roles when staff are added or edited!
+  useEffect(() => {
+    const validStaffIds = new Set(staffList.map((s) => s.id));
+    setAllocations((prev) =>
+      prev.map((alloc) => ({
+        ...alloc,
+        staffIds: alloc.staffIds.filter((id) => validStaffIds.has(id)),
+      }))
+    );
+  }, [staffList]);
+
+  // CRITICAL FIX: Keep existing task allocations intact when tasks list changes.
+  // Only add empty squads for new tasks or remove deleted tasks. Never scramble existing assignments!
+  useEffect(() => {
+    setAllocations((prev) => {
+      const existingMap = new Map(prev.map((a) => [a.taskId, a]));
+      return tasks.map((t, idx) => {
+        const existing = existingMap.get(t.id);
+        if (existing) return existing;
+        return {
+          taskId: t.id,
+          groupName: `Squad ${idx + 1}`,
+          staffIds: [],
+        };
+      });
+    });
+  }, [tasks]);
+
+  // SHUFFLE IS ONLY TRIGGERED EXPLICITLY WHEN THE USER CLICKS "SHUFFLE"
   const handleShuffle = () => {
     setIsShuffling(true);
     setTimeout(() => {
@@ -117,12 +146,6 @@ export const App: React.FC = () => {
       setAllocations(newAllocations);
       setIsShuffling(false);
     }, 280);
-  };
-
-  // Re-synchronize when staff or tasks are modified
-  const handleDataUpdated = () => {
-    const newAllocations = generateDutyAllocations(staffList, tasks, shuffleOptions);
-    setAllocations(newAllocations);
   };
 
   return (
@@ -158,7 +181,9 @@ export const App: React.FC = () => {
           <StaffManager
             staffList={staffList}
             setStaffList={setStaffList}
-            onStaffUpdated={handleDataUpdated}
+            onStaffUpdated={() => {
+              // Intentionally do NOT reshuffle! Allocations remain locked to user assignments.
+            }}
           />
         )}
 
@@ -166,7 +191,9 @@ export const App: React.FC = () => {
           <TaskManager
             tasks={tasks}
             setTasks={setTasks}
-            onTasksUpdated={handleDataUpdated}
+            onTasksUpdated={() => {
+              // Intentionally do NOT reshuffle! Allocations remain locked to user assignments.
+            }}
           />
         )}
 
@@ -187,9 +214,9 @@ export const App: React.FC = () => {
             <span>• Duty Allocation System</span>
           </div>
           <div className="flex items-center gap-4 text-[11px] text-slate-400">
-            <span>Official Portrait & PDF Layout</span>
+            <span>Official Portrait Document Layout</span>
             <span>•</span>
-            <span>Client Side Local Data</span>
+            <span>Manual & Automatic Allocation</span>
           </div>
         </div>
       </footer>

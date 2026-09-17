@@ -9,10 +9,6 @@ import {
   ArrowLeftRight,
   SlidersHorizontal,
   Calendar,
-  Smartphone,
-  LayoutGrid,
-  MapPin,
-  Users,
   UserPlus,
   Check,
   Search,
@@ -49,7 +45,6 @@ export const RosterTable: React.FC<RosterTableProps> = ({
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedStaffA, setSelectedStaffA] = useState<string>('');
   const [selectedStaffB, setSelectedStaffB] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   // Manual Assignment Modal State
   const [assignModalTask, setAssignModalTask] = useState<DutyTask | null>(null);
@@ -116,7 +111,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
     window.print();
   };
 
-  // MANUAL SWAP LOGIC
+  // MANUAL SWAP LOGIC (Never triggers random reshuffling)
   const handleExecuteSwap = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStaffA || !selectedStaffB || selectedStaffA === selectedStaffB) {
@@ -149,7 +144,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
     setSelectedStaffB('');
   };
 
-  // MANUAL DIRECT MOVE LOGIC
+  // MANUAL DIRECT MOVE LOGIC (Moves only the chosen staff member)
   const handleMoveStaff = (staffId: string, targetTaskId: string | 'unassign') => {
     setAllocations((prev) =>
       prev.map((alloc) => {
@@ -173,7 +168,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
     );
   };
 
-  // MANUAL ASSIGN TOGGLE IN MODAL
+  // MANUAL ASSIGN TOGGLE IN MODAL (Direct assignment, locked in place)
   const handleToggleStaffInTask = (taskId: string, staffId: string) => {
     setAllocations((prev) => {
       const currentAlloc = prev.find((a) => a.taskId === taskId);
@@ -223,49 +218,19 @@ export const RosterTable: React.FC<RosterTableProps> = ({
       {/* ACTION & CONTROL TOOLBAR */}
       <div className="no-print bg-white rounded-xl shadow-xs border border-slate-200 p-3.5 sm:p-5 space-y-3 sm:space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-            <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-              <Calendar className="w-4 h-4 text-blue-700 shrink-0" />
-              <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Schedule Range
-                </span>
-                <input
-                  type="text"
-                  value={effectiveDate}
-                  onChange={(e) => setEffectiveDate(e.target.value)}
-                  className="text-xs font-semibold text-slate-800 bg-transparent focus:outline-none border-b border-dashed border-slate-300 hover:border-blue-600 focus:border-blue-600 truncate"
-                  placeholder="e.g. 1st Oct, 2026 to 31st Dec, 2026"
-                />
-              </div>
-            </div>
-
-            {/* View Mode Toggle */}
-            <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => setViewMode('table')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                  viewMode === 'table'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Document View</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('cards')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                  viewMode === 'cards'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Mobile Cards</span>
-              </button>
+          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+            <Calendar className="w-4 h-4 text-blue-700 shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Schedule Period
+              </span>
+              <input
+                type="text"
+                value={effectiveDate}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+                className="text-xs font-semibold text-slate-800 bg-transparent focus:outline-none border-b border-dashed border-slate-300 hover:border-blue-600 focus:border-blue-600 truncate"
+                placeholder="e.g. 1st Oct, 2026 to 31st Dec, 2026"
+              />
             </div>
           </div>
 
@@ -293,7 +258,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
               onClick={handleShuffleWithFeedback}
               disabled={isShuffling}
               className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-50 min-h-[42px]"
-              title="Automatically shuffle staff across all duty stations"
+              title="Click only if you want to automatically shuffle all staff"
             >
               <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isShuffling ? 'animate-spin' : ''}`} />
               <span>Shuffle Staff</span>
@@ -325,7 +290,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             <button
               onClick={handleExportExcel}
               disabled={isExporting !== null}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
               title="Download formatted Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -335,7 +300,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             <button
               onClick={handleExportPdf}
               disabled={isExporting !== null}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
               title="Download Official PDF (.pdf)"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -345,7 +310,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             <button
               onClick={() => handleExportImage('jpg')}
               disabled={isExporting !== null}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-[#162d59] hover:bg-[#203c73] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#162d59] hover:bg-[#203c73] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50 min-h-[40px]"
               title="Download high-resolution JPG Image"
             >
               <ImageIcon className="w-3.5 h-3.5" />
@@ -364,79 +329,22 @@ export const RosterTable: React.FC<RosterTableProps> = ({
         </div>
       </div>
 
-      {/* VIEW MODE 1: MOBILE SQUAD CARDS */}
-      {viewMode === 'cards' && (
-        <div className="no-print space-y-3.5 block md:hidden">
-          {allocations.map((alloc, idx) => {
-            const task = taskMap.get(alloc.taskId);
-            const assignedStaff = alloc.staffIds
-              .map((id) => staffMap.get(id))
-              .filter((s): s is StaffMember => !!s);
+      {/* MOBILE SWIPE PROMPT */}
+      <div className="no-print block md:hidden bg-blue-50 border border-blue-200 text-blue-800 px-3 py-1.5 rounded-lg text-xs text-center font-medium">
+        ↔ Swipe table sideways to view all columns & signature lines
+      </div>
 
-            return (
-              <div
-                key={alloc.taskId}
-                className="bg-white rounded-xl shadow-xs border border-slate-200 p-4 relative overflow-hidden"
-              >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      SR. NO. {idx + 1}
-                    </span>
-                    <h3 className="font-bold text-base text-[#162d59]">{task?.title}</h3>
-                    <span className="text-xs text-slate-500 font-mono">{task?.location}</span>
-                  </div>
-
-                  {task && (
-                    <button
-                      onClick={() => setAssignModalTask(task)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>Assign</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Staff list with signature placeholder */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  {assignedStaff.length === 0 ? (
-                    <p className="text-xs text-rose-500 italic py-1">No staff assigned.</p>
-                  ) : (
-                    assignedStaff.map((staff, sIdx) => (
-                      <div
-                        key={staff.id}
-                        className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-0"
-                      >
-                        <span className="font-medium text-slate-900">
-                          {sIdx + 1}. {staff.name}
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-mono tracking-widest">
-                          [ SIGNATURE ]
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* VIEW MODE 2: THE OFFICIAL PRINTABLE ROSTER DOCUMENT (EXACT MATCH TO PDF) */}
+      {/* THE OFFICIAL ROSTER DOCUMENT TABLE (ALWAYS VISIBLE, NO MODES HIDING IT) */}
       <div
         id="printable-roster-card"
-        className={`roster-export-container bg-white rounded-xl shadow-sm border border-slate-300 p-6 sm:p-10 max-w-4xl mx-auto ${
-          viewMode === 'cards' ? 'hidden md:block' : 'block'
-        }`}
+        className="roster-export-container bg-white rounded-xl shadow-sm border border-slate-300 p-4 sm:p-8 md:p-10 max-w-4xl mx-auto overflow-hidden"
       >
         {/* 1. DOCUMENT HEADER */}
         <div className="text-center pb-3">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide uppercase text-[#162d59]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide uppercase text-[#162d59]">
             {schoolMeta.name}
           </h1>
-          <p className="text-xs sm:text-sm font-bold text-[#1d4ed8] tracking-widest uppercase mt-1">
+          <p className="text-[11px] sm:text-xs md:text-sm font-bold text-[#1d4ed8] tracking-wider uppercase mt-1">
             OFFICIAL DUTY ALLOCATION ROSTER • {schoolMeta.academicYear.toUpperCase()}
           </p>
         </div>
@@ -453,21 +361,21 @@ export const RosterTable: React.FC<RosterTableProps> = ({
           </div>
         </div>
 
-        {/* 3. THE OFFICIAL TABLE */}
-        <div className="overflow-x-auto my-3">
-          <table className="w-full text-left border-collapse border border-slate-300 text-xs sm:text-sm">
+        {/* 3. THE OFFICIAL TABLE (Crisp 4 Columns with Signature) */}
+        <div className="overflow-x-auto my-3 -mx-2 sm:mx-0">
+          <table className="w-full text-left border-collapse border border-slate-300 text-xs sm:text-sm min-w-[580px] sm:min-w-full">
             <thead>
               <tr className="bg-[#162d59] text-white font-bold text-xs uppercase tracking-wider">
                 <th className="py-3 px-3 w-14 text-center border-r border-[#203c73]">
                   SR.<br />NO.
                 </th>
-                <th className="py-3 px-4 w-56 text-center border-r border-[#203c73]">
+                <th className="py-3 px-4 w-48 sm:w-56 text-center border-r border-[#203c73]">
                   DUTY STATION / AREA
                 </th>
                 <th className="py-3 px-5 border-r border-[#203c73]">
                   STAFF MEMBER
                 </th>
-                <th className="py-3 px-4 w-52 text-center">
+                <th className="py-3 px-4 w-44 sm:w-52 text-center">
                   SIGNATURE
                 </th>
               </tr>
@@ -486,7 +394,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                       {idx + 1}
                     </td>
 
-                    {/* DUTY STATION / AREA (CENTERED WITH [CAMPUS WING]) */}
+                    {/* DUTY STATION / AREA */}
                     <td className="py-4 px-4 text-center border-r border-slate-300 align-middle">
                       <div className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
                         {task?.title || 'Duty Area'}
@@ -495,7 +403,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                         {task?.location || '[CAMPUS WING]'}
                       </div>
 
-                      {/* On-screen Assign Staff Button (Hidden in exports) */}
+                      {/* On-screen Assign Staff Button */}
                       {task && (
                         <button
                           onClick={() => setAssignModalTask(task)}
@@ -507,29 +415,37 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                       )}
                     </td>
 
-                    {/* STAFF MEMBER (NUMBERED ROWS) */}
+                    {/* STAFF MEMBER (ONLY ENTERED NAMES) */}
                     <td className="p-0 border-r border-slate-300 align-top">
                       {assignedStaff.length === 0 ? (
-                        <div className="py-4 px-5 text-xs text-rose-500 italic">
-                          No staff assigned
+                        <div className="py-4 px-5 text-xs text-rose-500 italic flex items-center justify-between">
+                          <span>No staff assigned</span>
+                          {task && (
+                            <button
+                              onClick={() => setAssignModalTask(task)}
+                              className="no-print text-blue-700 font-semibold hover:underline cursor-pointer"
+                            >
+                              + Assign Now
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div className="divide-y divide-slate-200">
                           {assignedStaff.map((staff, sIdx) => (
                             <div
                               key={staff.id}
-                              className="py-2.5 px-5 flex items-center justify-between text-xs sm:text-sm font-medium text-slate-800"
+                              className="py-2.5 px-5 flex items-center justify-between text-xs sm:text-sm font-medium text-slate-800 hover:bg-slate-50/60 transition-colors"
                             >
                               <span>
                                 {sIdx + 1}. {staff.name}
                               </span>
 
-                              {/* On-screen Move Dropdown (Hidden in exports) */}
+                              {/* On-screen Move Dropdown (Screen only) */}
                               <select
                                 onChange={(e) => handleMoveStaff(staff.id, e.target.value)}
                                 value={alloc.taskId}
-                                className="no-print text-[10px] bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-slate-600 focus:outline-none hover:border-blue-500 cursor-pointer"
-                                title="Move teacher"
+                                className="no-print text-[10px] bg-slate-100 border border-slate-300 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none hover:border-blue-500 cursor-pointer ml-2"
+                                title="Move teacher to another station"
                               >
                                 <option value={alloc.taskId} disabled>Move...</option>
                                 {tasks
@@ -610,7 +526,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
         </div>
       </div>
 
-      {/* MODAL: MANUAL SQUAD STAFF ASSIGNMENT */}
+      {/* MODAL: MANUAL DUTY ASSIGNMENT */}
       {assignModalTask && currentModalAllocation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-150">
@@ -641,7 +557,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                   type="text"
                   value={assignSearch}
                   onChange={(e) => setAssignSearch(e.target.value)}
-                  placeholder="Search staff by name..."
+                  placeholder="Search entered staff by name..."
                   className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 />
               </div>
@@ -704,6 +620,12 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                     </div>
                   );
                 })}
+
+              {staffList.length === 0 && (
+                <div className="text-center py-6 text-slate-400 text-xs">
+                  No staff members available. Go to "Staff Directory" tab to add or upload your staff!
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
