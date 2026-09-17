@@ -6,12 +6,10 @@ import {
   Printer,
   RefreshCw,
   Building2,
-  Clock,
   ShieldCheck,
   ArrowLeftRight,
   SlidersHorizontal,
   Calendar,
-  Award,
   Smartphone,
   LayoutGrid,
   MapPin,
@@ -49,7 +47,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedStaffA, setSelectedStaffA] = useState<string>('');
   const [selectedStaffB, setSelectedStaffB] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
   const staffMap = new Map(staffList.map((s) => [s.id, s]));
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
@@ -131,14 +129,9 @@ export const RosterTable: React.FC<RosterTableProps> = ({
           newStaffIds = newStaffIds.map((id) => (id === selectedStaffB ? selectedStaffA : id));
         }
 
-        let newSupervisorId = alloc.supervisorId;
-        if (alloc.supervisorId === selectedStaffA) newSupervisorId = selectedStaffB;
-        else if (alloc.supervisorId === selectedStaffB) newSupervisorId = selectedStaffA;
-
         return {
           ...alloc,
           staffIds: newStaffIds,
-          supervisorId: newSupervisorId,
         };
       })
     );
@@ -148,15 +141,9 @@ export const RosterTable: React.FC<RosterTableProps> = ({
     setSelectedStaffB('');
   };
 
-  const handleSetLead = (taskId: string, staffId: string) => {
-    setAllocations((prev) =>
-      prev.map((alloc) => (alloc.taskId === taskId ? { ...alloc, supervisorId: staffId } : alloc))
-    );
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* ACTION & CONTROL TOOLBAR (MOBILE RESPONSIVE) */}
+      {/* ACTION & CONTROL TOOLBAR */}
       <div className="no-print bg-white rounded-xl shadow-xs border border-slate-200 p-3.5 sm:p-5 space-y-3 sm:space-y-4">
         {/* Row 1: Effective Schedule Date & Policy Settings */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -177,7 +164,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
               </div>
             </div>
 
-            {/* View Mode Toggle: Mobile Cards vs Table */}
+            {/* View Mode Toggle */}
             <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold self-start sm:self-auto">
               <button
                 type="button"
@@ -206,8 +193,8 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             </div>
           </div>
 
-          {/* Shuffle Policy Checkboxes */}
-          <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+          {/* Shuffle Policy Controls */}
+          <div className="flex items-center gap-2.5 text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <label className="inline-flex items-center gap-1.5 cursor-pointer">
               <input
@@ -220,22 +207,10 @@ export const RosterTable: React.FC<RosterTableProps> = ({
               />
               <span className="text-[11px] sm:text-xs">Hostel Gender Policy</span>
             </label>
-
-            <label className="inline-flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={shuffleOptions.autoAssignGroupLeads}
-                onChange={(e) =>
-                  setShuffleOptions({ ...shuffleOptions, autoAssignGroupLeads: e.target.checked })
-                }
-                className="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5"
-              />
-              <span className="text-[11px] sm:text-xs">Squad Leads</span>
-            </label>
           </div>
         </div>
 
-        {/* Row 2: Action Buttons & Exports (Mobile Optimized Grid) */}
+        {/* Row 2: Action Buttons & Exports */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-100">
           {/* Main Shuffle & Swap Buttons */}
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
@@ -259,7 +234,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             </button>
           </div>
 
-          {/* Export Buttons Grid on Mobile */}
+          {/* Export Buttons */}
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
             <button
               onClick={handleExportExcel}
@@ -303,7 +278,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
         </div>
       </div>
 
-      {/* VIEW MODE 1: MOBILE SQUAD CARDS (Clean touch-friendly phone view) */}
+      {/* VIEW MODE 1: MOBILE SQUAD CARDS */}
       {viewMode === 'cards' && (
         <div className="no-print space-y-3.5 block md:hidden">
           <div className="flex items-center justify-between text-xs text-slate-500 px-1">
@@ -321,9 +296,6 @@ export const RosterTable: React.FC<RosterTableProps> = ({
             const assignedStaff = alloc.staffIds
               .map((id) => staffMap.get(id))
               .filter((s): s is StaffMember => !!s);
-            const supervisor = alloc.supervisorId
-              ? staffMap.get(alloc.supervisorId)
-              : assignedStaff[0];
 
             return (
               <div
@@ -358,66 +330,34 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                     </div>
                     <h3 className="font-bold text-base text-slate-900 mt-0.5">{task?.title}</h3>
                   </div>
-
-                  <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded">
-                    <Clock className="w-3 h-3 text-slate-500" />
-                    <span>{task?.timing}</span>
-                  </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
+                <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
                   <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">{task?.location}</span>
                 </div>
 
-                {/* Supervisor Block */}
-                {supervisor && (
-                  <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-2.5 mb-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Award className="w-4 h-4 text-amber-600 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-amber-950 truncate">{supervisor.name}</div>
-                        <div className="text-[10px] text-amber-800 truncate">
-                          Squad Lead • {supervisor.department}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] bg-amber-200 text-amber-900 font-semibold px-1.5 py-0.5 rounded shrink-0">
-                      INCHARGE
-                    </span>
-                  </div>
-                )}
-
-                {/* Assigned Personnel Chips */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
+                {/* Assigned Personnel Names */}
+                <div className="mb-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-2">
                     <span>Assigned Staff ({assignedStaff.length})</span>
-                    <span className="text-slate-400">Target: {task?.requiredCount || 0}</span>
+                    <span className="text-slate-400">Quota: {task?.requiredCount || 0}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {assignedStaff.map((staff) => {
-                      const isLead = staff.id === supervisor?.id;
-                      return (
-                        <div
-                          key={staff.id}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs border ${
-                            isLead
-                              ? 'bg-amber-100 text-amber-950 border-amber-300 font-semibold'
-                              : 'bg-slate-50 text-slate-800 border-slate-200'
-                          }`}
-                        >
-                          <span>{staff.name}</span>
-                          <span className="text-[10px] text-slate-500 font-normal">
-                            ({staff.department})
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div className="space-y-1.5">
+                    {assignedStaff.map((staff, sIdx) => (
+                      <div
+                        key={staff.id}
+                        className="flex items-center gap-2 text-xs text-slate-900 font-medium"
+                      >
+                        <span className="text-slate-400 text-[11px] w-4">{sIdx + 1}.</span>
+                        <span>{staff.name}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Directives */}
-                <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 leading-relaxed">
+                <div className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 leading-relaxed">
                   <strong className="text-slate-700">Directive:</strong> {task?.description}
                 </div>
               </div>
@@ -433,7 +373,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
           viewMode === 'cards' ? 'hidden md:block' : 'block'
         }`}
       >
-        {/* INSTITUTIONAL LETTERHEAD (MOBILE SCALED) */}
+        {/* INSTITUTIONAL LETTERHEAD */}
         <div className="bg-[#0f2b48] text-white p-4 sm:p-8 text-center relative border-b-4 border-amber-600">
           <div className="max-w-3xl mx-auto">
             <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 mb-2 sm:mb-2.5">
@@ -447,48 +387,37 @@ export const RosterTable: React.FC<RosterTableProps> = ({
               {schoolMeta.subtitle}
             </p>
 
+            {/* Session & Schedule Header (Without Ref) */}
             <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-700/80 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1.5 text-[10px] sm:text-xs text-slate-300 font-sans">
               <div>
                 <span className="text-slate-400">SESSION: </span>
                 <span className="font-semibold text-white">{schoolMeta.academicYear}</span>
               </div>
-              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-slate-600">•</span>
               <div>
                 <span className="text-slate-400">SCHEDULE: </span>
                 <span className="font-semibold text-amber-300">{effectiveDate}</span>
-              </div>
-              <span className="text-slate-600 hidden sm:inline">•</span>
-              <div>
-                <span className="text-slate-400">REF: </span>
-                <span className="font-mono text-slate-300">DISC-ROST-{new Date().getFullYear()}-Q3</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Swipe Hint */}
-        <div className="no-print block md:hidden bg-amber-50 border-b border-amber-200/60 px-3 py-1.5 text-[11px] text-amber-800 text-center font-medium">
-          ↔ Swipe horizontally to view full table columns
-        </div>
-
-        {/* OFFICIAL ROSTER TABLE */}
+        {/* OFFICIAL ROSTER TABLE (Clean, streamlined columns) */}
         <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left border-collapse min-w-[760px] md:min-w-full">
+          <table className="w-full text-left border-collapse min-w-[640px] md:min-w-full">
             <thead>
               <tr className="bg-[#0c233c] text-white text-xs uppercase tracking-wider font-semibold border-b border-slate-700">
-                <th className="py-3.5 px-3 w-10 text-center">#</th>
-                <th className="py-3.5 px-4 w-44">Duty Station / Area</th>
-                <th className="py-3.5 px-4 w-32">Shift / Timings</th>
-                <th className="py-3.5 px-4 w-30">Assigned Squad</th>
-                <th className="py-3.5 px-4 w-44">Squad Incharge / Lead</th>
-                <th className="py-3.5 px-4">Designated Personnel & Departments</th>
-                <th className="py-3.5 px-4 w-48">Specific Instructions</th>
+                <th className="py-3.5 px-3 w-12 text-center">#</th>
+                <th className="py-3.5 px-4 w-52 sm:w-60">Duty Station / Area</th>
+                <th className="py-3.5 px-4 w-32 sm:w-36 text-center">Assigned Squad</th>
+                <th className="py-3.5 px-5">Staff Members</th>
+                <th className="py-3.5 px-4 w-56 sm:w-64">Specific Instructions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-sm">
               {allocations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                  <td colSpan={5} className="py-12 text-center text-slate-500">
                     No duty stations active. Add duties in the "Duty Stations" tab or click Shuffle.
                   </td>
                 </tr>
@@ -499,10 +428,6 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                     .map((id) => staffMap.get(id))
                     .filter((s): s is StaffMember => !!s);
 
-                  const supervisor = alloc.supervisorId
-                    ? staffMap.get(alloc.supervisorId)
-                    : assignedStaff[0];
-
                   return (
                     <tr
                       key={alloc.taskId}
@@ -511,12 +436,12 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                       }`}
                     >
                       {/* S.No */}
-                      <td className="py-3.5 px-3 text-center text-xs font-bold text-slate-400">
+                      <td className="py-4 px-3 text-center text-xs font-bold text-slate-400 align-top">
                         {idx + 1}
                       </td>
 
                       {/* Duty Station */}
-                      <td className="py-3.5 px-4 align-top">
+                      <td className="py-4 px-4 align-top">
                         <div className="font-bold text-slate-900 text-xs sm:text-sm">
                           {task?.title || 'Duty Area'}
                         </div>
@@ -529,22 +454,14 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                                 : 'bg-rose-100 text-rose-800'
                             }`}
                           >
-                            {task?.preferredGender === 'male' ? 'Boys Hostel Duty' : 'Girls Hostel Duty'}
+                            {task?.preferredGender === 'male' ? 'Boys Hostel' : 'Girls Hostel'}
                           </span>
                         )}
                       </td>
 
-                      {/* Shift / Timings */}
-                      <td className="py-3.5 px-4 align-top">
-                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" />
-                          <span>{task?.timing || 'Standard Hours'}</span>
-                        </div>
-                      </td>
-
                       {/* Assigned Squad */}
-                      <td className="py-3.5 px-4 align-top">
-                        <span className="inline-block px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300/80">
+                      <td className="py-4 px-4 align-top text-center">
+                        <span className="inline-block px-2.5 py-1 rounded text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300/80">
                           {alloc.groupName}
                         </span>
                         <div className="text-[11px] text-slate-400 mt-1">
@@ -552,64 +469,29 @@ export const RosterTable: React.FC<RosterTableProps> = ({
                         </div>
                       </td>
 
-                      {/* Squad Incharge / Lead */}
-                      <td className="py-3.5 px-4 align-top">
-                        {supervisor ? (
-                          <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-2">
-                            <div className="flex items-center gap-1 text-amber-900 font-bold text-xs">
-                              <Award className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              <span className="truncate">{supervisor.name}</span>
-                            </div>
-                            <div className="text-[10px] text-slate-600 mt-0.5 truncate">
-                              {supervisor.role} ({supervisor.department})
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">Unassigned</span>
-                        )}
-                      </td>
-
-                      {/* Designated Personnel Tags */}
-                      <td className="py-3.5 px-4 align-top">
+                      {/* Staff Members (Clean Names, No Department Tags) */}
+                      <td className="py-4 px-5 align-top">
                         {assignedStaff.length === 0 ? (
-                          <span className="text-xs text-rose-500 font-medium">
+                          <span className="text-xs text-rose-500 font-medium italic">
                             No staff members assigned
                           </span>
                         ) : (
-                          <div className="flex flex-wrap gap-1.5">
-                            {assignedStaff.map((staff) => {
-                              const isLead = staff.id === supervisor?.id;
-                              return (
-                                <div
-                                  key={staff.id}
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors border ${
-                                    isLead
-                                      ? 'bg-amber-100/90 text-amber-950 border-amber-300 font-semibold'
-                                      : 'bg-white text-slate-800 border-slate-300 shadow-2xs'
-                                  }`}
-                                >
-                                  <span>{staff.name}</span>
-                                  <span className="text-[10px] text-slate-500 font-normal">
-                                    • {staff.department}
-                                  </span>
-                                  {!isLead && (
-                                    <button
-                                      onClick={() => handleSetLead(alloc.taskId, staff.id)}
-                                      className="no-print text-[10px] text-amber-700 hover:text-amber-900 underline ml-0.5 cursor-pointer"
-                                      title="Make Squad Lead"
-                                    >
-                                      Lead
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+                            {assignedStaff.map((staff, sIdx) => (
+                              <div
+                                key={staff.id}
+                                className="flex items-center gap-2 text-xs font-medium text-slate-900"
+                              >
+                                <span className="text-slate-400 text-[11px] w-4 shrink-0">{sIdx + 1}.</span>
+                                <span>{staff.name}</span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </td>
 
-                      {/* Instructions */}
-                      <td className="py-3.5 px-4 align-top text-xs text-slate-600 leading-relaxed">
+                      {/* Specific Instructions */}
+                      <td className="py-4 px-4 align-top text-xs text-slate-600 leading-relaxed">
                         {task?.description || 'Follow standard campus discipline protocols.'}
                       </td>
                     </tr>
@@ -620,7 +502,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
           </table>
         </div>
 
-        {/* OFFICIAL SIGNATURE AND NOTICE FOOTER (RESPONSIVE STACK) */}
+        {/* OFFICIAL SIGNATURE AND NOTICE FOOTER */}
         <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-200">
           {/* Important Notice */}
           <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-3 text-xs text-amber-900 mb-5 sm:mb-6">
@@ -651,7 +533,7 @@ export const RosterTable: React.FC<RosterTableProps> = ({
         </div>
       </div>
 
-      {/* MODAL: SWAP TWO STAFF MEMBERS (MOBILE OPTIMIZED TOUCH MODAL) */}
+      {/* MODAL: SWAP TWO STAFF MEMBERS */}
       {swapModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">

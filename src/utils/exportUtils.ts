@@ -13,7 +13,7 @@ function sanitizeFileName(name: string): string {
 
 /**
  * EXCEL EXPORT (.xlsx)
- * Generates an official, well-formatted multi-sheet workbook.
+ * Generates an official, streamlined multi-sheet workbook.
  */
 export function exportRosterToExcel(
   allocations: DutyAllocation[],
@@ -29,19 +29,16 @@ export function exportRosterToExcel(
   const rosterRows: (string | number)[][] = [
     [schoolMeta.name.toUpperCase()],
     [schoolMeta.subtitle],
-    [`Academic Session: ${schoolMeta.academicYear} | Effective Period: ${effectiveDate}`],
+    [`Academic Session: ${schoolMeta.academicYear} | Schedule: ${effectiveDate}`],
     [`Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`],
     [], // Blank spacing row
     [
       'S.No',
-      'Duty Location / Task',
+      'Duty Station / Area',
       'Location Specifics',
-      'Duty Shift / Hours',
-      'Group / Squad',
-      'Group Leader / Incharge',
-      'Assigned Staff Members',
-      'Staff Count',
-      'Core Responsibilities'
+      'Assigned Squad',
+      'Staff Members',
+      'Specific Instructions'
     ]
   ];
 
@@ -53,42 +50,32 @@ export function exportRosterToExcel(
       .map((id) => staffMap.get(id))
       .filter((s): s is StaffMember => !!s);
 
-    const supervisor = alloc.supervisorId ? staffMap.get(alloc.supervisorId) : assignedStaff[0];
-
-    const staffNamesWithDepts = assignedStaff
-      .map((s) => `${s.name} (${s.department})`)
-      .join('; ');
+    const staffNames = assignedStaff.map((s) => s.name).join('; ');
 
     rosterRows.push([
       index + 1,
       task.title,
       task.location,
-      task.timing,
       alloc.groupName,
-      supervisor ? `${supervisor.name} [${supervisor.role}]` : 'N/A',
-      staffNamesWithDepts,
-      assignedStaff.length,
+      staffNames || 'None',
       task.description
     ]);
   });
 
   rosterRows.push([]);
-  rosterRows.push([`Important Note: ${schoolMeta.noticeText}`]);
-  rosterRows.push([`Prepared by: ${schoolMeta.preparedBy}`, '', '', '', `Approved by: ${schoolMeta.approvedBy}`]);
+  rosterRows.push([`Standing Orders: ${schoolMeta.noticeText}`]);
+  rosterRows.push([`Prepared by: ${schoolMeta.preparedBy}`, '', '', `Approved by: ${schoolMeta.approvedBy}`]);
 
   const wsRoster = XLSX.utils.aoa_to_sheet(rosterRows);
 
-  // Set column widths for beautiful spreadsheet readability
+  // Set column widths
   wsRoster['!cols'] = [
-    { wch: 6 },  // S.No
-    { wch: 26 }, // Duty Location
-    { wch: 30 }, // Location specifics
-    { wch: 22 }, // Duty Shift
-    { wch: 18 }, // Group
-    { wch: 28 }, // Supervisor
-    { wch: 45 }, // Staff Members
-    { wch: 12 }, // Count
-    { wch: 40 }, // Responsibilities
+    { wch: 8 },  // S.No
+    { wch: 28 }, // Duty Location
+    { wch: 32 }, // Location specifics
+    { wch: 20 }, // Assigned Squad
+    { wch: 50 }, // Staff Members
+    { wch: 45 }, // Instructions
   ];
 
   // Sheet 2: School Staff Directory
@@ -173,7 +160,7 @@ export function exportRosterToPdf(
   doc.setTextColor(71, 85, 105);
   doc.text(schoolMeta.subtitle, pageWidth / 2, 22, { align: 'center' });
 
-  // Academic Session & Date Box
+  // Academic Session & Date Box (Without Ref)
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(30, 41, 59);
@@ -188,31 +175,27 @@ export function exportRosterToPdf(
   doc.setFontSize(8.5);
   doc.setTextColor(100, 116, 139);
   doc.text(
-    `Effective Range: ${effectiveDate}   •   Issue Date: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+    `Schedule: ${effectiveDate}   •   Issued: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
     pageWidth / 2,
     33,
     { align: 'center' }
   );
 
-  // Build Table Data
+  // Build Table Data (Streamlined: No shift timing, no incharge, clean staff names)
   const tableData = allocations.map((alloc, idx) => {
     const task = taskMap.get(alloc.taskId);
     const assignedStaff = alloc.staffIds
       .map((id) => staffMap.get(id))
       .filter((s): s is StaffMember => !!s);
 
-    const supervisor = alloc.supervisorId ? staffMap.get(alloc.supervisorId) : assignedStaff[0];
-
     const staffListFormatted = assignedStaff
-      .map((s, i) => `${i + 1}. ${s.name} (${s.department})`)
+      .map((s, i) => `${i + 1}. ${s.name}`)
       .join('\n');
 
     return [
       `${idx + 1}`,
-      `${task?.title || 'General'}\n[${task?.location || ''}]`,
-      task?.timing || 'Standard Hours',
+      `${task?.title || 'Duty Area'}\n[${task?.location || ''}]`,
       alloc.groupName,
-      supervisor ? `${supervisor.name}\n(${supervisor.role})` : 'Self-Regulated',
       staffListFormatted || 'No staff assigned',
       task?.description || '-'
     ];
@@ -224,18 +207,16 @@ export function exportRosterToPdf(
     head: [[
       '#',
       'Duty Station / Area',
-      'Duty Timings',
       'Assigned Squad',
-      'Team Lead / Supervisor',
-      'Designated Staff Members',
-      'Responsibilities & Instructions'
+      'Staff Members',
+      'Specific Instructions'
     ]],
     body: tableData,
     theme: 'grid',
     styles: {
       font: 'helvetica',
-      fontSize: 8.5,
-      cellPadding: 3,
+      fontSize: 9,
+      cellPadding: 3.5,
       textColor: [30, 41, 59],
       lineColor: [203, 213, 225],
       lineWidth: 0.2,
@@ -245,17 +226,15 @@ export function exportRosterToPdf(
       fillColor: [15, 43, 72],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 8.5,
+      fontSize: 9,
       halign: 'center',
     },
     columnStyles: {
-      0: { cellWidth: 8, halign: 'center' },
-      1: { cellWidth: 42, fontStyle: 'bold' },
-      2: { cellWidth: 28, halign: 'center' },
-      3: { cellWidth: 24, halign: 'center' },
-      4: { cellWidth: 36 },
-      5: { cellWidth: 85 },
-      6: { cellWidth: 54 },
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 62, fontStyle: 'bold' },
+      2: { cellWidth: 38, halign: 'center' },
+      3: { cellWidth: 95 },
+      4: { cellWidth: 70 },
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252],
@@ -263,7 +242,6 @@ export function exportRosterToPdf(
     margin: { left: 10, right: 10, bottom: 28 },
   });
 
-  // Access last table coordinate for clean footer
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lastY = (doc as any).lastAutoTable?.finalY || 160;
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -271,11 +249,11 @@ export function exportRosterToPdf(
 
   // Administrative Notice
   doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7.5);
+  doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Notice: ${schoolMeta.noticeText}`, 10, footerY - 4, { maxWidth: pageWidth - 20 });
+  doc.text(`Standing Orders: ${schoolMeta.noticeText}`, 10, footerY - 4, { maxWidth: pageWidth - 20 });
 
-  // Signature Blocks
+  // Dual Signature Lines
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(15, 43, 72);
@@ -296,7 +274,6 @@ export function exportRosterToPdf(
 
 /**
  * HIGH-RES IMAGE EXPORT (.jpg or .png)
- * Captures the exact formatted HTML element with double DPI for crispness.
  */
 export async function exportRosterToImage(
   elementId: string,
@@ -308,12 +285,11 @@ export async function exportRosterToImage(
     throw new Error(`Element with id #${elementId} not found`);
   }
 
-  // Temporary styling tweaks during capture for pristine image
   const originalBackground = element.style.backgroundColor;
   element.style.backgroundColor = '#ffffff';
 
   const exportOptions = {
-    pixelRatio: 2.5, // 2.5x high-density render
+    pixelRatio: 2.5,
     quality: 0.95,
     backgroundColor: '#ffffff',
     cacheBust: true,
@@ -330,7 +306,6 @@ export async function exportRosterToImage(
       dataUrl = await toPng(element, exportOptions);
     }
 
-    // Trigger download
     const link = document.createElement('a');
     link.download = `${cleanSchool}_Duty_Roster_${dateTag}.${format}`;
     link.href = dataUrl;
